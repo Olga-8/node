@@ -32,3 +32,4 @@ function getProcessInfo() {
 }
 
 setInterval(getProcessInfo, 100);
+
