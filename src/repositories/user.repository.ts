@@ -5,13 +5,13 @@ const users: UserEntity[] = [
 	{
 		id: "eb5a26af-6e4c-4f31-a9b1-3450d42ac66c",
 		email: "qq@cc.com",
-		password: "dfd5ff33fn",
+		password: "12345678o",
 		role: 'user'
 	},
 	{
 		id: "eb5a26af-6e4c-4f31-a9b1-3450d42ac65c",
 		email: "yy@ii.com",
-		password: "vfvh45yf78",
+		password: "77777777o",
 		role: 'user'
 	}
 ];
