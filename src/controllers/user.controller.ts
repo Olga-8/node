@@ -1,43 +1,45 @@
 import { Request, Response } from 'express';
 import * as UserService from '../services/user.services';
 import { generateAuthToken } from '../utils/generateAuthToken';
+import { orm } from '../index';
 
 export const register = async (req: Request, res: Response) => {
-  try {
-    const { email, password, role } = req.body;
-    const newUser = await UserService.registerUser(email, password, role);
+    try {
+        const { email, password, role } = req.body;
 
-    res.status(200).json({ data: { id: newUser.id, email: newUser.email, role: newUser.role }, error: null });
+        const newUser = await UserService.registerUser(email, password, role);
 
-  } catch (error) {
-    const errorMessage = (error as Error).message;
+        res.status(200).json({ data: { id: newUser.id, email: newUser.email, role: newUser.role }, error: null });
+    } catch (error) {
+        const errorMessage = (error as Error).message;
 
-    if (errorMessage === 'Email already in use' || errorMessage ==='Invalid input') {
-      res.status(400).json({ data: null, error: { message: errorMessage } });
-
-    } else {
-      res.status(500).json({ data: null, error: { message: "Internal Server Error" } });
+        if (errorMessage === 'Email already in use' || errorMessage === 'Invalid input') {
+            res.status(400).json({ data: null, error: { message: errorMessage } });
+        } else {
+            res.status(500).json({ data: null, error: { message: 'Internal Server Error' } });
+        }
     }
-  }
 };
 
 export const login = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-    const user = await UserService.validateUserLogin(email, password);
+    try {
+        const { email, password } = req.body;
 
-    if (!user) {
-      return res.status(404).json({
-        data: null,
-        error: { message: "No user with such email or password" }
-      });
+        console.log(email, password);
+        const user = await UserService.validateUserLogin(email, password);
+        
+        if (!user) {
+            return res.status(404).json({
+                data: null,
+                error: { message: 'No user with such email or password' },
+            });
+        }
+
+        const token = generateAuthToken(user.id);
+        
+        res.status(200).json({ data: { token }, error: null });
+    } catch (error) {
+        const errorMessage = (error as Error).message;
+        res.status(500).json({ data: null, error: { message: 'Internal Server Error' } });
     }
-
-    const token = generateAuthToken(user.id);
-    res.status(200).json({ data: { token }, error: null });
-
-  } catch (error) {
-    const errorMessage = (error as Error).message;
-    res.status(500).json({ data: null, error: { message: "Internal Server Error" } });
-  }
 };

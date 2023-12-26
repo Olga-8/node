@@ -1,8 +1,8 @@
-import { OrderEntity } from '../models/order';
+import { Order } from '../entity/order';
+import {orm} from '../index' 
 
-const orders: OrderEntity[] = [];
-
-export const saveOrder = (order: OrderEntity): OrderEntity => {
-  orders.push(order);
+export const saveOrder = async ( order: Order): Promise<Order> => {
+  const em = orm.em.fork();
+  await em.persistAndFlush(order);
   return order;
 };

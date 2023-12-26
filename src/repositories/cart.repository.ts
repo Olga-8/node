@@ -1,26 +1,23 @@
-import { CartEntity } from '../models/cart';
+import { Cart } from '../entity/cart';
+import {orm} from '../index' 
 
-const carts: CartEntity[] = [];
-
-export const findCartByUserId = (userId: string): CartEntity | undefined => {
-  return carts.find(cart => cart.userId === userId && !cart.isDeleted);
+export const findCartByUserId = async ( userId: string): Promise<Cart | null> => {
+  const em = orm.em.fork();
+  return await em.findOne(Cart, { userId, isDeleted: false });
 };
 
-export const saveCart = (cartItem: CartEntity): CartEntity => {
-  const existingIndex = carts.findIndex(cart => cart.id === cartItem.id);
-
-  if (existingIndex >= 0) {
-    carts[existingIndex] = cartItem;
-  } else {
-    carts.push(cartItem);
-  }
-  return cartItem;
+export const saveCart = async ( cart: Cart): Promise<Cart> => {
+  const em = orm.em.fork();
+  await em.persistAndFlush(cart);
+  return cart;
 };
 
-export const softDeleteCart = (cartId: string): void => {
-  const cart = carts.find(cart => cart.id === cartId);
-  
+export const softDeleteCart = async ( cartId: string): Promise<void> => {
+  const em = orm.em.fork();
+  const cart = await em.findOne(Cart, { id: cartId });
+
   if (cart) {
     cart.isDeleted = true;
+    await em.persistAndFlush(cart);
   }
 };

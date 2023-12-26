@@ -14,3 +14,5 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     req.params.id = userId;
     next();
 };
+
+  

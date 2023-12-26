@@ -1,38 +1,49 @@
-import { OrderEntity } from '../models/order';
-import { emptyCart, calculateCartTotal } from './cart.service';
+import { Order } from '../entity/order';
+import { Cart } from '../entity/cart';
+import { User } from '../entity/user';
 import { v4 as uuidv4 } from 'uuid';
-import { findCartByUserId } from '../repositories/cart.repository';
-import { ORDER_STATUS }  from '../config'
-import { saveOrder } from '../repositories/order.repository';
+import { ORDER_STATUS } from '../config';
+import { calculateCartTotal } from './cart.service';
+import { orm } from '../index';
 
-export const createOrderFromCart = (userId: string): OrderEntity => {
-  const cart = findCartByUserId(userId);
+export const createOrderFromCart = async (userId: string): Promise<Order> => {
+    const em = orm.em.fork();
 
-  if (!cart || cart.items.length === 0) {
-    throw new Error('Cart is empty');
-  }
+    try {
+        const user = await em.findOne(User, { id: userId });
+        if (!user) {
+            throw new Error('User not found');
+        }
 
-  const order: OrderEntity = {
-      id: uuidv4(),
-      userId: userId,
-      cartId: cart.id,
-      items: cart.items,
-      total: calculateCartTotal(cart),
-      payment: {
-          type: '',
-          address: undefined,
-          creditCard: undefined
-      },
-      delivery: {
-          type: '',
-          address: undefined
-      },
-      comments: '',
-      status: ORDER_STATUS.Created
-  };
+        const cart = await em.findOne(Cart, { userId: user.id, isDeleted: false });
 
-  saveOrder(order);
-  emptyCart(userId);
+        await cart?.items.init();
 
-  return order;
+        if (!cart || cart.items.length === 0) {
+            throw new Error('Cart is empty');
+        }
+
+        const order = new Order();
+        order.id = uuidv4();
+        order.user = user;
+        order.cartId = cart.id;
+        order.items.set(cart.items.getItems());
+        order.total = calculateCartTotal(cart);
+        // payment и delivery 
+        order.paymentType = '';
+        order.deliveryType = '';
+        order.comments = '';
+        order.status = ORDER_STATUS.Created;
+
+        await em.persistAndFlush(order);
+
+        cart.items.removeAll();
+        await em.persistAndFlush(cart);
+
+        return order;
+		
+    } catch (error) {
+        console.error('Error in createOrderFromCart:', error);
+        throw error;
+    }
 };

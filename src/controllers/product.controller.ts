@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import * as ProductRepository from '../repositories/product.repository';
 import * as UserService from '../repositories/user.repository';
+import {orm} from '../index' 
 
-export const getAllProducts = (req: Request, res: Response) => {
+
+export const getAllProducts = async ( req: Request, res: Response) => {
   try {
     const userId = req.header('x-user-id');
 
@@ -13,7 +15,7 @@ export const getAllProducts = (req: Request, res: Response) => {
       });
     }
 
-    const userExist =  UserService.findUserById(userId)
+    const userExist = await UserService.findUserById(userId)
     if (userId && !userExist) {
       return res.status(401).json({
         data: null,
@@ -21,7 +23,7 @@ export const getAllProducts = (req: Request, res: Response) => {
       });
     }
 
-    const products = ProductRepository.getAllProducts();
+    const products = await ProductRepository.getAllProducts();
     res.status(200).json({ data: products, error: null });
   } catch (error) {
     res.status(500).json({
@@ -31,7 +33,7 @@ export const getAllProducts = (req: Request, res: Response) => {
   }
 };
 
-export const getProduct = (req: Request, res: Response) => {
+export const getProduct = async ( req: Request, res: Response) => {
   try {
     const userId = req.header('x-user-id');
     
@@ -42,7 +44,7 @@ export const getProduct = (req: Request, res: Response) => {
       });
     }
 
-    const userExist = UserService.findUserById(userId)
+    const userExist = await UserService.findUserById(userId)
 
     if (userId && !userExist) {
       return res.status(401).json({
@@ -52,7 +54,7 @@ export const getProduct = (req: Request, res: Response) => {
     }
 
     const productId = req.params.productId;
-    const product = ProductRepository.getProductById(productId);
+    const product = await ProductRepository.getProductById(productId);
 
     if (!product) {
       return res.status(404).json({
