@@ -1,21 +1,16 @@
-import { User } from '../entity/user';
+import { User, IUser } from '../entity/user';
 import bcrypt from 'bcrypt';
-import {orm} from '../index' 
 
-export const saveUser = async (user: User): Promise<User> => {
-  const em = orm.em.fork();
-  await em.persistAndFlush(user);
-  return user;
+export const saveUser = async (user: IUser) => {
+    return user;
 };
 
-export const findUserByEmail = async ( email: string): Promise<User | null> => {
-  const em = orm.em.fork();
-  return await em.findOne(User, { email });
+export const findUserByEmail = async (email: string) => {
+    return User.findOne({ email });
 };
 
-export const findUserById = async ( id: string): Promise<User | null> => {
-  const em = orm.em.fork();
-  return await em.findOne(User, { id });
+export const findUserById = async (id: string): Promise<IUser | null> => {
+    return await User.findById(id);
 };
 
 export const comparePassword = async (enteredPassword: string, storedPasswordHash: string): Promise<boolean> => {

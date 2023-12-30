@@ -1,44 +1,38 @@
+import mongoose from 'mongoose';
 import { ORDER_STATUS } from '../config';
-import { Cart, CartItem } from './cart';
-import { Entity, PrimaryKey, Property, ManyToOne, OneToMany, Enum, Collection, OneToOne } from '@mikro-orm/core';
-import { User } from './user';
+import { v4 as uuidv4 } from 'uuid';
+import { ICartItem } from './cart';
 
-@Entity()
-export class Order {
-    @PrimaryKey()
-    id!: string;
-
-    @ManyToOne(() => User)
-    user!: User;
-
-    @Property()
-    cartId!: string;
-
-    @OneToMany(() => CartItem, (item) => item.order)
-    items = new Collection<CartItem>(this);
-
-    //  Payment, Delivery
-    @Property()
-    paymentType!: string;
-
-    @Property({ nullable: true })
-    paymentAddress?: string;
-
-    @Property({ nullable: true })
-    paymentCreditCard?: string;
-
-    @Property()
-    deliveryType!: string;
-
-    @Property()
-    deliveryAddress!: string;
-
-    @Property()
-    comments!: string;
-
-    @Enum(() => ORDER_STATUS)
-    status!: ORDER_STATUS;
-
-    @Property()
-    total!: number;
+interface IOrder {
+  _id: string;
+  userId: string;
+  cartId: string;
+  items: ICartItem[];
+  paymentType: string;
+  paymentAddress: string;
+  paymentCreditCard: string;
+  deliveryType: string;
+  deliveryAddress: string;
+  comments: string;
+  status: ORDER_STATUS;
+  total: number;
 }
+
+const orderSchema = new mongoose.Schema<IOrder>({
+  _id: { type: String, default: () => uuidv4() },
+  userId: String,
+  cartId:String,
+  items: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CartItem' }],
+  paymentType: { type: String, required: true },
+  paymentAddress: { type: String },
+  paymentCreditCard: { type: String },
+  deliveryType: { type: String, required: true },
+  deliveryAddress: { type: String, required: true },
+  comments: { type: String },
+  status: { type: String, enum: Object.values(ORDER_STATUS), required: true },
+  total: { type: Number, required: true }
+});
+
+const Order = mongoose.model('Order', orderSchema);
+
+export { Order, IOrder};

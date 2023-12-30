@@ -1,12 +1,10 @@
-import { Product } from '../entity/product';
-import {orm} from '../index' 
+import { IProduct, Product } from '../entity/product';
+import mongoose from 'mongoose';
 
-export const getAllProducts = async (): Promise<Product[]> => {
-  const em = orm.em.fork();
-  return await em.find(Product, {});
+export const getAllProducts = async (): Promise<IProduct[]> => {
+  return await Product.find();
 };
 
-export const getProductById = async (productId: string): Promise<Product | null> => {
-  const em = orm.em.fork();
-  return await em.findOne(Product, { id: productId });
-};
+export const getProductById = async (productId: string): Promise<IProduct | null> => {
+  return await Product.findById(productId)
+}

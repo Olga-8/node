@@ -1,23 +1,14 @@
-import { Cart } from '../entity/cart';
-import {orm} from '../index' 
+import { Cart, ICart } from '../entity/cart';
+import mongoose from 'mongoose';
 
-export const findCartByUserId = async ( userId: string): Promise<Cart | null> => {
-  const em = orm.em.fork();
-  return await em.findOne(Cart, { userId, isDeleted: false });
+export const findCartByUserId = async (userId: string): Promise<ICart | null>=> {
+  return await Cart.findOne({ userId, isDeleted: false }).populate('items').exec();
 };
 
-export const saveCart = async ( cart: Cart): Promise<Cart> => {
-  const em = orm.em.fork();
-  await em.persistAndFlush(cart);
-  return cart;
+export const saveCart = async (cart: mongoose.Document & ICart) => {
+  return await cart.save();
 };
 
-export const softDeleteCart = async ( cartId: string): Promise<void> => {
-  const em = orm.em.fork();
-  const cart = await em.findOne(Cart, { id: cartId });
-
-  if (cart) {
-    cart.isDeleted = true;
-    await em.persistAndFlush(cart);
-  }
+export const softDeleteCart = async (cartId: string): Promise<void> => {
+  await Cart.updateOne({ _id: cartId }, { isDeleted: true }).exec();
 };

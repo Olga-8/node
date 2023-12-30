@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import * as CartService from '../services/cart.service';
 import * as UserService from '../repositories/user.repository';
-import { orm } from '../index';
 
 export const getCart = async (req: Request, res: Response) => {
     try {
@@ -21,7 +20,7 @@ export const getCart = async (req: Request, res: Response) => {
         }
 
         const cart = await CartService.getOrCreateCart(userId);
-        const total = CartService.calculateCartTotal(cart);
+        const total = CartService.calculateCartTotal(cart._id);
         
         res.status(200).json({ data: { cart, total }, error: null });
     } catch (error) {
@@ -29,6 +28,8 @@ export const getCart = async (req: Request, res: Response) => {
     }
 };
 //
+
+
 export const updateCart = async (req: Request, res: Response) => {
     try {
         const userId = req.header('x-user-id');
@@ -51,7 +52,7 @@ export const updateCart = async (req: Request, res: Response) => {
         }
 
         const cart = await CartService.updateCart(userId, productId, count);
-        const total = CartService.calculateCartTotal(cart);
+        const total = CartService.calculateCartTotal(cart._id);
 
         res.status(200).json({ data: { cart, total } });
     } catch (error) {

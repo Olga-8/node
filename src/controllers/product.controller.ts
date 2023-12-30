@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import * as ProductRepository from '../repositories/product.repository';
 import * as UserService from '../repositories/user.repository';
-import {orm} from '../index' 
+
 
 
 export const getAllProducts = async ( req: Request, res: Response) => {

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import * as UserService from '../services/user.services';
 import { generateAuthToken } from '../utils/generateAuthToken';
-import { orm } from '../index';
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -9,7 +8,7 @@ export const register = async (req: Request, res: Response) => {
 
         const newUser = await UserService.registerUser(email, password, role);
 
-        res.status(200).json({ data: { id: newUser.id, email: newUser.email, role: newUser.role }, error: null });
+        res.status(200).json({ data: { id: newUser._id, email: newUser.email, role: newUser.role }, error: null });
     } catch (error) {
         const errorMessage = (error as Error).message;
 
@@ -35,7 +34,7 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        const token = generateAuthToken(user.id);
+        const token = generateAuthToken(user._id);
         
         res.status(200).json({ data: { token }, error: null });
     } catch (error) {

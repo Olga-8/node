@@ -1,79 +1,63 @@
-import { Cart } from '../entity/cart';
+import { Cart, ICart } from '../entity/cart';
 import { CartItem } from '../entity/cart';
-import { Product } from '../entity/product';
+import { IProduct, Product } from '../entity/product';
 import { v4 as uuidv4 } from 'uuid';
-import {orm} from '../index' 
+import mongoose from 'mongoose';
 
-export const getOrCreateCart = async (userId: string): Promise<Cart> => {
-  const em = orm.em.fork();
-  try {
-  let cart = await em.findOne(Cart, { userId });
-  console.log("cart", cart)
+export const getOrCreateCart = async (userId: string): Promise<ICart> => {
+  let cart = await Cart.findOne({ userId, isDeleted: false });
   if (!cart) {
-    cart = new Cart();
-    cart.id= uuidv4();
-    cart.userId = userId;
-    cart.isDeleted = false;
-    await em.persistAndFlush(cart);
+    cart = new Cart({ userId, isDeleted: false, items: [] });
+    await cart.save();
   }
-
-  return cart;
-} catch (error) {
-  console.error("Error in getOrCreateCart:", error);
-  throw error;
-}
+  return cart.populate('items.product');
 };
 
-export const calculateCartTotal = (cart: Cart): number => {
-  return cart.items.getItems().reduce((total, item) => total + (item.product.price * item.count), 0);
-};
-
-export const updateCart = async ( userId: string, productId: string, count: number): Promise<Cart> => {
-  const em = orm.em.fork();
-  const cart = await em.findOne(Cart, { userId });
+export const calculateCartTotal = async (cartId: string): Promise<number> => {
+  const cart = await Cart.findById(cartId).populate('items');
   if (!cart) throw new Error('Cart not found');
 
-  const product = await em.findOne(Product, { id: productId });
+  return cart.items.reduce( (total, item ) => {
+    return total + (item.product.price * item.count);
+  }, 0);
+
+};
+
+
+export const updateCart = async (userId: string, productId: string, count: number): Promise<ICart> => {
+  const cart = await Cart.findOne({ userId }).populate('items.product');
+  if (!cart) throw new Error('Cart not found');
+
+  const product = await Product.findById(productId);
   if (!product) throw new Error('Product not found');
 
-  const existingItem = cart.items.getItems().find(item => item.product.id === productId);
-  
-  if (existingItem) {
+  const existingItemIndex = cart.items.findIndex(item => item.product._id.toString() === productId);
+
+  if (existingItemIndex > -1) {
     if (count > 0) {
-      existingItem.count = count;
+      cart.items[existingItemIndex].count = count;
     } else {
-      cart.items.remove(existingItem);
+      cart.items.splice(existingItemIndex, 1);
     }
   } else if (count > 0) {
-    const newItem = new CartItem();
-    newItem.product = product;
-    newItem.count = count;
-    cart.items.add(newItem);
+    cart.items.push({ product, count });
   }
 
-  await em.persistAndFlush(cart);
+  await cart.save();
   return cart;
 };
 
+
 export const emptyCart = async (userId: string): Promise<void> => {
-  const em = orm.em.fork();
-  const cart = await em.findOne(Cart, { userId });
-
-  if (!cart) {
-    throw new Error('Cart not found');
-  }
-
-  cart.items.removeAll();
-  await em.persistAndFlush(cart);
+  const cart = await Cart.findOne({ userId });
+  if (!cart) throw new Error('Cart not found');
+  cart.items = [];
+  await cart.save();
 };
 
-export const deleteCart = async ( cartId: string): Promise<void> => {
-  const em = orm.em.fork();
-  const cart = await em.findOne(Cart, { id: cartId });
-  if (!cart) {
-    throw new Error('Cart not found');
-  }
-
+export const deleteCart = async (userId: string): Promise<void> => {
+  const cart = await Cart.findOne({ userId });
+  if (!cart) throw new Error('Cart not found');
   cart.isDeleted = true;
-  await em.persistAndFlush(cart);
+  await cart.save();
 };

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import * as OrderService from '../services/order.service';
 import * as UserService from '../repositories/user.repository';
-import { orm } from '../index';
+
 
 export const checkoutCart = async (req: Request, res: Response) => {
     try {
