@@ -4,7 +4,7 @@ import { validateUser } from '../utils/validate';
 import { comparePassword } from '../repositories/user.repository';
 
 export const registerUser = async (email: string, password: string, role: string): Promise<IUser> => {
-    const { error } = validateUser(email, password);
+    const { error } = validateUser(email, password, role);
     if (error) {
         throw new Error(error.details[0].message);
     }
@@ -31,9 +31,9 @@ export const registerUser = async (email: string, password: string, role: string
 };
 
 
-export const validateUserLogin = async (email: string, password: string): Promise<IUser> => {
+export const validateUserLogin = async (email: string, password: string, role: string): Promise<IUser> => {
     try {
-        const { error } = validateUser(email, password);
+        const { error } = validateUser(email, password, role);
         if (error) {
             throw new Error(error.details[0].message);
         }

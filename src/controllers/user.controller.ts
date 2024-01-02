@@ -22,10 +22,10 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         console.log(email, password);
-        const user = await UserService.validateUserLogin(email, password);
+        const user = await UserService.validateUserLogin(email, password, role);
         
         if (!user) {
             return res.status(404).json({
