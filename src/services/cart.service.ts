@@ -1,8 +1,5 @@
 import { Cart, ICart } from '../entity/cart';
-import { CartItem } from '../entity/cart';
 import { IProduct, Product } from '../entity/product';
-import { v4 as uuidv4 } from 'uuid';
-import mongoose from 'mongoose';
 import {debug} from "../index";
 import logger from "../utils/logger";
 
