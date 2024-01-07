@@ -1,5 +1,6 @@
 import * as jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import logger from "../utils/logger";
 
 export interface CurrentUser {
     id: string,
@@ -12,12 +13,14 @@ export async function verifyToken (req: Request, res: Response, next: NextFuncti
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
+        logger.error('Token is required');
         return res.status(401).send("Token is required");
     }
 
     const [tokenType, token] = authHeader.split(' ');
 
     if (tokenType !== 'Bearer') {
+        logger.error('Invalid token type');
         return res.status(403).send("Invalid Token");
     }
 

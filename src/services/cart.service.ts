@@ -3,19 +3,26 @@ import { CartItem } from '../entity/cart';
 import { IProduct, Product } from '../entity/product';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
+import {debug} from "../index";
+import logger from "../utils/logger";
 
 export const getOrCreateCart = async (userId: string): Promise<ICart> => {
   let cart = await Cart.findOne({ userId, isDeleted: false });
   if (!cart) {
+    debug('cart not exist for user ${userId}');
     cart = new Cart({ userId, isDeleted: false, items: [] });
     await cart.save();
+    logger.info('cart created for user ${userId}');
   }
   return cart.populate('items.product');
 };
 
 export const calculateCartTotal = async (cartId: string): Promise<number> => {
   const cart = await Cart.findById(cartId).populate('items');
-  if (!cart) throw new Error('Cart not found');
+  if (!cart) {
+    logger.error('Cart not found');
+    throw new Error('Cart not found');
+  }
 
   return cart.items.reduce( (total, item ) => {
     return total + (item.product.price * item.count);
@@ -26,12 +33,23 @@ export const calculateCartTotal = async (cartId: string): Promise<number> => {
 
 export const updateCart = async (userId: string, productId: string, count: number): Promise<ICart> => {
   const cart = await Cart.findOne({ userId }).populate('items.product');
-  if (!cart) throw new Error('Cart not found');
+  debug('updateCart:', cart);
+
+  if (!cart) {
+    logger.error('Cart not found');
+    throw new Error('Cart not found');
+  }
 
   const product = await Product.findById(productId);
-  if (!product) throw new Error('Product not found');
+  debug('product:', product);
+  if (!product) {
+   logger.error('Product not found');
+    throw new Error('Product not found');
+  }
+
 
   const existingItemIndex = cart.items.findIndex(item => item.product._id.toString() === productId);
+  debug('existingItemIndex:', existingItemIndex);
 
   if (existingItemIndex > -1) {
     if (count > 0) {
@@ -59,5 +77,6 @@ export const deleteCart = async (userId: string): Promise<void> => {
   const cart = await Cart.findOne({ userId });
   if (!cart) throw new Error('Cart not found');
   cart.isDeleted = true;
+  debug('deleteCart:', cart);
   await cart.save();
 };

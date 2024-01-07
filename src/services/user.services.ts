@@ -2,56 +2,68 @@ import { IUser, User } from '../entity/user';
 import { hashPassword } from '../utils/hashPassword';
 import { validateUser } from '../utils/validate';
 import { comparePassword } from '../repositories/user.repository';
+import { debug } from '../index';
+import logger from "../utils/logger";
 
 export const registerUser = async (email: string, password: string, role: string): Promise<IUser> => {
-    const { error } = validateUser(email, password, role);
-    if (error) {
-        throw new Error(error.details[0].message);
-    }
+	const { error } = validateUser(email, password, role);
+	if (error) {
+		throw new Error(error.details[0].message);
+	}
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-        throw new Error('Email already in use');
-    }
+	const existingUser = await User.findOne({ email });
+	if (existingUser) {
+		logger.info('User already exists');
+		throw new Error('Email already in use');
+	}
 
-    const hashedPassword = await hashPassword(password);
-    const newUser = new User({
-        email: email,
-        password: hashedPassword,
-        role: role
-    });
+	const hashedPassword = await hashPassword(password);
+	const newUser = new User({
+		email: email,
+		password: hashedPassword,
+		role: role
+	});
 
-    try {
-        await newUser.save();
-    } catch (error) {
-        console.error('Error saving user:', error);
-        throw error;
-    }
-    return newUser;
+	debug('newUser:', newUser);
+
+	try {
+		await newUser.save();
+	} catch (error) {
+		logger.error('Error saving user:', error);
+		throw error;
+	}
+	return newUser;
 };
 
 
 export const validateUserLogin = async (email: string, password: string, role: string): Promise<IUser> => {
-    try {
-        const { error } = validateUser(email, password, role);
-        if (error) {
-            throw new Error(error.details[0].message);
-        }
-    } catch (err) {
-        console.error('Error in validateUser:', err);
-        throw err;
-    }
+	debug(`Validating user with email: ${email}`);
+	try {
+		const { error } = validateUser(email, password, role);
+		if (error) {
+			logger.error('Error in validateUser:', error);
+			throw new Error(error.details[0].message);
+		}
+	} catch (err) {
+		logger.error('Error in validateUser:', err);
+		throw err;
+	}
 
-    const user = await User.findOne({ email });
-    if (!user) {
-        throw new Error('No user with such email or password');
-    }
+	const user = await User.findOne({ email });
+	debug('find user:', user);
 
-    const isPasswordCorrect = await comparePassword(password, user.password);
-    if (!isPasswordCorrect) {
-      throw new Error('No user with such email or password');
-    }
+	if (!user) {
+		logger.error('No user with such email or password');
+		throw new Error('No user with such email or password');
+	}
 
-    console.log('user2', user);
-    return user;
+	const isPasswordCorrect = await comparePassword(password, user.password);
+	if (!isPasswordCorrect) {
+		debug(`Password incorrect`);
+		logger.error('No user with such email or password');
+		throw new Error('No user with such email or password');
+	}
+	debug('validate user was successful');
+
+	return user;
 };

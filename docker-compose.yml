@@ -1,24 +1,33 @@
-# version: '3'
-# services:
-#   postgres-db:
-#     image: "postgres:12"
-#     container_name: "node-gmp-db"
-#     environment:
-#       - POSTGRES_USER=node_gmp
-#       - POSTGRES_PASSWORD=password123
-#       - POSTGRES_DB=node_gmp
-#     restart: always
-#     ports:
-#       - '5432:5432'
 
-version: '3.3'
+version: '3.9'
 services:
+    app:
+        container_name: my_app
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                NODE_ENV: production
+                restart: always
+        ports:
+            - '3000:3000'
+        environment:
+            NODE_ENV: 'production'
+            MONGO_URI: 'mongodb+srv://mongo_db:Password123@cluster0.nxzrh8i.mongodb.net/'
+            REDIS_URL: redis://redis:6379
+        depends_on:
+            - mongo
+            - redis
+        networks:
+            - my_network
+
     mongo:
+        container_name: mongo
+        image: mongo:latest
         ports:
             - '27017:27017'
         volumes:
             - ./data/db:/data/db
-        container_name: dkrcomp-mongo
         restart: always
         logging:
             options:
@@ -26,5 +35,23 @@ services:
         environment:
             - MONGO_INITDB_ROOT_USERNAME=mongo_db
             - MONGO_INITDB_ROOT_PASSWORD=Password123
-        image: mongo
-        
+        networks:
+            - my_network
+
+    redis:
+        container_name: redis
+        image: redis:latest
+        ports:
+            - '6379:6379'
+        volumes:
+            - ./data/redis:/data/redis
+        restart: always
+        logging:
+            options:
+                max-size: 1g
+        networks:
+            - my_network
+
+networks:
+    my_network:
+

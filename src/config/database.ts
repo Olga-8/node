@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 
 export async function connect(): Promise<void> {
   
-    const { MONGO_URI } = process.env; 
+    const { MONGO_URI } = process.env;
+
     if (!MONGO_URI) {
         console.log("Please provide DataBase URI to connect. exiting now...");
         process.exit(1);
