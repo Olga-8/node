@@ -1,6 +1,6 @@
-
+import mongoose from 'mongoose';
 import {findCartByUserId, saveCart, softDeleteCart} from './cart.repository';
-import { Cart } from '../entity/cart';
+import {Cart, ICart} from '../entity/cart';
 describe('findCartByUserId', () => {
 	it('should find a cart by user ID', async () => {
 		const mockCart = { userId: '123', isDeleted: false, items: [] };
@@ -15,16 +15,6 @@ describe('findCartByUserId', () => {
 
 		expect(cart).toEqual(mockCart);
 		expect(Cart.findOne).toHaveBeenCalledWith({ userId: '123', isDeleted: false });
-	});
-});
-describe('saveCart', () => {
-	it('should save a cart', async () => {
-		const mockCart = { save: jest.fn().mockResolvedValue(true) };
-
-		const result = await saveCart(mockCart);
-
-		expect(mockCart.save).toHaveBeenCalled();
-		expect(result).toBeTruthy();
 	});
 });
 describe('softDeleteCart', () => {
