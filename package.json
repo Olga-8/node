@@ -54,10 +54,10 @@
   },
   "husky": {
     "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "jest",
-      "pre-push": "jest --coverage"
+      "pre-commit": "npm run lint",
+      "pre-push": "npm test"
     }
   },
+
   "description": ""
 }
