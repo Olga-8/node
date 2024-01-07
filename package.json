@@ -9,7 +9,7 @@
     "start:debug": "set DEBUG=my-app:* && node dist/index.js",
     "build": "tsc",
     "serve": "node dist/index.js",
-    "lint": "eslint 'src/**/*.{js,ts}' --quiet"
+    "lint": "eslint src/**/*.{js,ts} --quiet"
   },
   "author": "",
   "license": "ISC",

@@ -1,4 +1,4 @@
-import { IOrder, Order } from '../entity/order';
+import { IOrder } from '../entity/order';
 import mongoose from 'mongoose';
 
 export const saveOrder = async (order: mongoose.Document & IOrder): Promise<IOrder> => {

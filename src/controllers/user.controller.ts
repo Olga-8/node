@@ -38,7 +38,6 @@ export const login = async (req: Request, res: Response) => {
         
         res.status(200).json({ data: { token }, error: null });
     } catch (error) {
-        const errorMessage = (error as Error).message;
         res.status(500).json({ data: null, error: { message: 'Internal Server Error' } });
     }
 };

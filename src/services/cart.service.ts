@@ -1,5 +1,5 @@
 import { Cart, ICart } from '../entity/cart';
-import { IProduct, Product } from '../entity/product';
+import { Product } from '../entity/product';
 import {debug} from "../index";
 import logger from "../utils/logger";
 
